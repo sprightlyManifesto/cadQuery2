@@ -1,3 +1,5 @@
+#friday afternoon gear/thread extestanisum;
+# when does a high helix gear stop being a gear and become a thread
 from math import atan, asin, acos, tan, sin, cos, pi
 
 class gear:
@@ -52,11 +54,11 @@ class gear:
 
 
 #takes a few seconds to run on an 2019 i7
-mod = 1
-teeth = 22
+mod =0.4
+teeth = 20
 bore = 5
-width = 10
-for twist in (10,-10):
-    g = gear.herringBone(mod,teeth,bore,width,twist)
-    cq.exporters.export(g,f'HBGear-M{mod}-T{teeth}-W{width}-B{bore}-T{twist}.stl')
+width = 50
+twist = 360
+g = gear.spur(mod,teeth,bore,width,twist)
+cq.exporters.export(g,f'HBGear-M{mod}-T{teeth}-W{width}-B{bore}-T{twist}.stl')
 #cq.exporters.export(g,f'SpurGear-M{mod}-T{teeth}-W{width}-B{bore}.step')
