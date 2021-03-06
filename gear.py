@@ -4,13 +4,19 @@ from math import atan, asin, acos, tan, sin, cos, pi
 
 class gear:
     @staticmethod
-    def herringBone(mod,teeth,bore,width,twist):
-        g = gear.spur(mod,teeth,bore,width/2,twist) 
-        g = g.union(gear.spur(mod,teeth,bore,width/2,twist).mirror(mirrorPlane="XY"))
+    def herringBone(mod,teeth,bore,width,helixAngle):
+        g = gear.spur(mod,teeth,bore,width/2,helixAngle) 
+        g = g.union(gear.spur(mod,teeth,bore,width/2,helixAngle).mirror(mirrorPlane="XY"))
         return g
     @staticmethod
-    def spur(mod,teeth,bore,width,twist):
+    def spur(mod,teeth,bore,width,helixAngle):
         pcd = mod*teeth
+        if helixAngle != 0:
+            twist = width * tan(helixAngle*pi/180) / (pi*pcd) * 360
+        else:
+            twist = 0
+        
+        log(f"twist: {twist}")
         log(f"pcd: {pcd}")
         OD = mod*(teeth+2)
         if mod >1.25:
@@ -26,7 +32,7 @@ class gear:
         
         sideA = []
         sideB = []
-        for i in (steps*2,steps,0):
+        for i in (steps*3,steps*2,steps,0):
             T = i*dT
             L = baseDia/2*dT*i
             H = (L**2 + (baseDia/2)**2)**0.5
@@ -54,11 +60,12 @@ class gear:
 
 
 #takes a few seconds to run on an 2019 i7
-mod =0.4
-teeth = 20
+mod =2
+teeth = 10
 bore = 5
-width = 50
-twist = 360
-g = gear.spur(mod,teeth,bore,width,twist)
-cq.exporters.export(g,f'HBGear-M{mod}-T{teeth}-W{width}-B{bore}-T{twist}.stl')
+width = 10
+helixAngle = 45
+for teeth, helixAngle in ((20,45),(40,-45)):
+    g = gear.spur(mod,teeth,bore,width,helixAngle)
+    cq.exporters.export(g,f'TWGear-M{mod}-T{teeth}-W{width}-B{bore}-HA{helixAngle}.stl')
 #cq.exporters.export(g,f'SpurGear-M{mod}-T{teeth}-W{width}-B{bore}.step')
