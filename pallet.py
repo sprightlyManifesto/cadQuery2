@@ -33,14 +33,16 @@ class Pallet:
         A , B = self.torx6[no]
         re=A*0.1
         ri=A*0.175
-        H = re + ri 
-        O = B + ri - cos(pi/6)*(A-re)
-        theta = pi/2 - acos(O/H)
-        x =  H*cos(theta)
-        y = -H*sin(theta)+ B + ri
+        x = ri*(sin(pi/6)*(A/2-re))/(re + ri)
+        y1 = B/2 + ri
+        y2 = cos(pi/6)*(A/2 - re)
+        y = y1 - ri*((y1 -y2))/(re + ri)
+        #log(f"x:{x} y1:{y1} y2:{y2}")
         phi = atan2(x,y)
+        #log(f"phi:{round(phi,2)}  x:{round(x,2)} y:{round(y,2)} re:{round(re,2)} ri:{round(ri,2)}")
         R = (x**2+y**2)**0.5
-        Rm = B+ri
+        Rm = A/2
+        B = B/2
         res = wp.moveTo(R*sin(-phi),R*cos(-phi)).threePointArc((0,B),(R*sin(phi),R*cos(phi))) \
             .threePointArc((Rm*sin(pi/6),Rm*cos(pi/6)),(R*sin(pi/3-phi),R*cos(pi/3-phi))) \
             .threePointArc((B*sin(pi/3),  B*cos(pi/3)),(R*sin(phi+pi/3),R*cos(phi+pi/3))) \
@@ -56,6 +58,11 @@ class Pallet:
             .close()
         return res
 
-p = Pallet()
-
-a = p.torx(Workplane(),6)
+if __name__== "__main__":
+    p = Pallet()
+    ks = list(p.torx6.keys())
+    ks.reverse()
+    a = cq.Workplane().circle(12).extrude(-3)
+    for k in ks:
+        a = a.union(p.torx(a.faces(">Z").workplane(),k).extrude(1))
+        
