@@ -1,5 +1,6 @@
 #friday afternoon gear/thread extestanisum;
 # when does a high helix gear stop being a gear and become a thread
+import cadquery as cq
 from math import atan, asin, acos, tan, sin, cos, pi
 
 class gear:
