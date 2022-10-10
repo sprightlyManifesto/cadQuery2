@@ -10,8 +10,7 @@ r = AF/cos(pi/6)/2
 n = 62/2*cos(pi/4)
 
 a = WP().circle(84/2).extrude(T)
-a = a.union(WP().pushPoints([(x1,y1),(x2,y2)]).circle(4.7/2).extrude(T+3))
-a = a.faces(">Z").edges().fillet(0.5)
+a = a.cut(WP().workplane(offset=T).pushPoints([(x1,y1),(x2,y2)]).circle(5/2).extrude(-17))
 a = a.union(WP().circle(51.7/2).extrude(-10).faces("<Z").edges().fillet(0.5))
 
 clampHs = [(-1.8,10),(-1.8,-30)]
