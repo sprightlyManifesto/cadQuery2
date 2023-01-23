@@ -68,9 +68,9 @@ class parts(object):
         a = a.edges("|Z").fillet(5)
         a = a.cut(WP().rect(pX,pitch*2,forConstruction=True).vertices().circle(4.9/2).extrude(T))
         pts = [(-0.7,0),(-0.3,-0.8),(0.3,-0.8),(0.7,0)]
-        beltPitch = 2.5
+        beltPitch = 2
         beltProfile = WP("XZ").center(0,10).polyline(pts).close().extrude(9,both=True)
-        for i in range(-10,11):
+        for i in range(-12,13):
             a = a.cut(beltProfile.translate((beltPitch*i,0,0)))
         a = a.cut(WP("XZ").moveTo(-8,10).radiusArc((-8,0),5).lineTo(8,0).radiusArc((8,10),5).close().extrude(10,both=True))
         #claming holes
@@ -147,24 +147,22 @@ class parts(object):
         return a
     @staticmethod
     def upstand():
-        H,T,W = 80,10,40
+        H,T,W = 100,15,40
         y = H/2-T
         a = WP().moveTo(0,y).rect(W,H).extrude(-T)
+        a = a.edges("|Z").fillet(9.5)
         a = a.union(WP().rect(20,6).extrude(2))
-        a = a.cut(WP().pushPoints([(-12,0),(12,0)]).circle(5/2).extrude(T,both=True))
-        a = a.union(WP().moveTo(0,y+H/2-T/2).rect(W,T).extrude(20))
-        a = a.cut(WP("XZ").pushPoints([(-12,10),(12,10)]).circle(5/2).extrude(H,both=True))
-        a = a.faces("<Y").edges("|Z").fillet(9.5)
-        a = a.faces(">Z").edges("|Y").fillet(9.5)
+        a = a.cut(WP().pushPoints([(-12,0),(12,0),(-12,H-T*2),(12,H-T*2)]).circle(5/2).extrude(T,both=True))
+        a = a.union(WP().moveTo(0,H-T*2-10-4).rect(W,8).extrude(8))
         a = a.faces("<Z").edges("|Y").fillet(2)
         return a
     
 ASSY = True
-EXPORT = False
+EXPORT = True
 
 strut = 20
 laserSquare = 33
-table = 750,1090
+#table = 750,1090
 table = 200,300
 pitch = 40.5
 W = table[1]-strut
@@ -172,14 +170,7 @@ black = cq.Color(0,0,0,1)
 orange = cq.Color(1,0.5,0,0.5)
 red = cq.Color(1,0,0,0.5)
 green = cq.Color(0,1,0,0.5)
-
-"""
-bracket = parts.motorMount(pitch)
-lm = parts.laserMount(pitch)
-show_object(bracket)
-show_object(lm)
-"""
-#upstand = parts.upstand()
+blue = cq.Color(0,0,1,0.5)
 
 if ASSY:
     assy = cq.Assembly()
@@ -216,12 +207,10 @@ if ASSY:
     assy.add(bought.pulley().translate((-x-20,0,table[0]/2-20.5)))
     assy.add(parts.brace().translate((0,0,-z)),color=green)
     z = table[0]/2-65
-    assy.add(parts.upstand().rotate((0,0,0),(0,1,0),90).translate((-W/2-10,0,z)))
-    assy.add(parts.upstand().rotate((0,0,0),(0,1,0),-90).translate((+W/2+10,0,z)))
-    assy.add(parts.upstand().rotate((0,0,0),(0,1,0),90).translate((-W/2-10,0,-z)))
-    assy.add(parts.upstand().rotate((0,0,0),(0,1,0),-90).translate((+W/2+10,0,-z)))
-    #assy = parts.yAxisEnd(40.5)
-    #assy = parts.stepperBracket()
+    assy.add(parts.upstand().rotate((0,0,0),(0,1,0),90).translate((-W/2-10,0,z)),color=blue)
+    assy.add(parts.upstand().rotate((0,0,0),(0,1,0),-90).translate((+W/2+10,0,z)),color=blue)
+    assy.add(parts.upstand().rotate((0,0,0),(0,1,0),90).translate((-W/2-10,0,-z)),color=blue)
+    assy.add(parts.upstand().rotate((0,0,0),(0,1,0),-90).translate((+W/2+10,0,-z)),color=blue)
     show_object(assy)
 
 if EXPORT:
@@ -233,4 +222,7 @@ if EXPORT:
     cq.exporters.export(parts.stepperBracket().rotate((0,0,0),(1,0,0),-90),"stepperBracket-L.stl")
     cq.exporters.export(parts.stepperBracket(mirror="True").rotate((0,0,0),(1,0,0),-90),"stepperBracket-R.stl")
     cq.exporters.export(parts.idler().rotate((0,0,0),(1,0,0),90),"idler.stl")
+    cq.exporters.export(parts.motorMount(40.5),"carridge.stl")
+    cq.exporters.export(parts.laserMount(pitch).rotate((0,0,0),(1,0,0),90),"laserMount.stl")
+    cq.exporters.export(parts.upstand(),"upStand.stl")
     
