@@ -192,9 +192,8 @@ table = 200,300
 pitch = 40.5
 W = table[1]-strut
 
-ASSY = False
+ASSY = True
 EXPORT = False
-a = parts.laserMount()
 
 black = cq.Color(0,0,0,1)
 orange = cq.Color(1,0.5,0,0.5)
@@ -226,7 +225,7 @@ if ASSY:
     assy.add(parts.yAxisEnd(pitch).rotate((0,0,0),(0,1,0),90).translate((x,0,0)), color=orange)
     assy.add(parts.yAxisEnd(pitch,mirror=True).rotate((0,0,0),(0,1,0),90).translate((-x,0,0)), color=orange)
     assy.add(parts.ySlidePlate(40.5).translate((0,0,-z+12)),color=orange)
-    assy.add(parts.laserMount().translate((0,0,-z+12)),color=orange)
+    assy.add(parts.laserMount().translate((0,36,-z+22)),color=orange)
     #struts:
     assy.add(bought.alu2020(W-46,"X").translate((0,-pitch/2,-z)))
     assy.add(bought.alu2020(W-46,"X").translate((0,pitch/2,-z)))
