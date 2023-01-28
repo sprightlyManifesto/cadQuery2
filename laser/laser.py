@@ -60,40 +60,58 @@ class parts(object):
             a = a.mirror("XY")
         return a
     @staticmethod
-    def motorMount(pitch):
+    def clamp():
+        T = 3
+        a = WP().moveTo(0,15).lineTo(0,-15).close().offset2D(6).extrude(T)
+        beltPitch = 2
+        pts = [(-0.7,0),(-0.3,0.8),(0.3,0.8),(0.7,0)]
+        beltProfile = WP("XZ").polyline(pts).close().extrude(9,both=True)
+        for i in range(-6,6):
+            a = a.cut(beltProfile.translate((beltPitch*i,0,0)))
+        #claming holes
+        a = a.cut(WP().pushPoints([(0,15),(0,-15)]).circle(3.3/2).extrude(T))
+        return a
+    
+    @staticmethod
+    def ySlidePlate(pitch):
         wheelD = 22
         pX,T,H = 50,10,pitch*2+wheelD
         a = WP().rect(72,H).extrude(T)
         a = a.cut(WP().pushPoints([(72/2,0),(-72/2,0)]).rect(wheelD,65).extrude(T))
         a = a.edges("|Z").fillet(5)
         a = a.cut(WP().rect(pX,pitch*2,forConstruction=True).vertices().circle(4.9/2).extrude(T))
-        pts = [(-0.7,0),(-0.3,-0.8),(0.3,-0.8),(0.7,0)]
+        #belt 
+        pts = [(-0.7,0),(-0.3,0.8),(0.3,0.8),(0.7,0)]
         beltPitch = 2
-        beltProfile = WP("XZ").center(0,10).polyline(pts).close().extrude(9,both=True)
+        beltProfile = WP("XZ").center(0,0).polyline(pts).close().extrude(9,both=True)
         for i in range(-12,13):
             a = a.cut(beltProfile.translate((beltPitch*i,0,0)))
+        #add rads to rectanglular hole in middle of plate
         a = a.cut(WP("XZ").moveTo(-8,10).radiusArc((-8,0),5).lineTo(8,0).radiusArc((8,10),5).close().extrude(10,both=True))
         #claming holes
         a = a.cut(WP().rect(30,30,forConstruction=True).vertices().circle(3.3/2).extrude(T))
         a = a.cut(WP().rect(30,30,forConstruction=True).vertices().polygon(6,5.5/cos(pi/6)).extrude(6))
+        #remove sides of plate to get hour glass shape
         a = a.cut(WP().moveTo(0,H/2-15).rect(20,20,forConstruction=True).vertices().circle(3.3/2).extrude(T))
         a = a.cut(WP().moveTo(0,H/2-15).rect(20,20,forConstruction=True).vertices().circle(6/2).extrude(T/2))
         return a
-    def laserMount(pitch):
-        wall, LS, g = 3, 33.2, 3
-        wheelD = 22
-        T,H = 10,pitch*2+wheelD
-        a = WP("XZ").workplane(offset=-H/2).moveTo(0,10+wall*2+LS/2).rect(LS,LS).rect(LS+wall*2,LS+wall*4).extrude(30)
-        a = a.cut(WP("XZ").workplane(offset=-H/2).moveTo(0,10+wall*3+LS/2).rect(LS,LS).extrude(30))
-        a = a.cut(WP("XZ").workplane(offset=-H/2).moveTo(0,10+wall+LS).rect(g,LS).extrude(30))
+    def laserMount():
+        wall, LS, rearWall,H,T = 3, 33.2,10,30,10
+        L = LS+wall+rearWall
+        a = WP("XZ").moveTo(0,L/2).rect(LS+wall*2,L).extrude(H/2,both=True)
+        #laser cut out
+        a = a.cut(WP("XZ").moveTo(0,LS/2 + rearWall).rect(LS,LS).extrude(H/2,both=True))
+        #pinch
+        a = a.cut(WP("XZ").moveTo(0,rearWall+LS).rect(wall,LS).extrude(H/2,both=True))
         t,w = 5, 10
-        x,y = t/2+g/2, w+wall*4+LS+t
-        a = a.union(WP("XZ").workplane(offset=-H/2).pushPoints([(x,y),(-x,y)]).rect(5,10).extrude(30))
+        x,y = t/2+wall/2, L+w/2
+        a = a.union(WP("XZ").workplane(offset=-H/2).pushPoints([(x,y),(-x,y)]).rect(5,10).extrude(H))
         a = a.cut(WP("YZ").center(H/2-15,y).pushPoints([(8,0),(-8,0)]).circle(3.3/2).extrude(10,both=True))
+        #mounting holes
         a = a.cut(WP().rect(20,20,forConstruction=True).vertices().circle(3.3/2).extrude(T))
-        a = a.cut(WP().workplane(offset=wall*2+T).moveTo(0,H/2-15).rect(20,20,forConstruction=True).vertices().polygon(6,5.5/cos(pi/6)).extrude(-4))
-        a = a.cut(WP().moveTo(0,H/2-15).rect(20,20,forConstruction=True).vertices().circle(3.3/2).extrude(T+wall*2))
+        a = a.cut(WP().workplane(offset=rearWall).moveTo(0,H/2-15).rect(20,20,forConstruction=True).vertices().polygon(6,5.5/cos(pi/6)).extrude(-4))
         return a
+    
     @staticmethod
     def endPulleyMnt(mirror=None):
         a = WP("YZ").rect(26+8,26).extrude(43)
@@ -137,37 +155,50 @@ class parts(object):
         return a
     @staticmethod
     def brace():
+        #outline of brace in line with 20x20 extrusion
         pts = [(10.5,10),(10.5,3),(11.5,3),(11.5,-3),(10.5,-3),(10.5,-10),(-10.5,-10),(-10.5,-3),(-11.5,-3),(-11.5,3),(-10.5,3),(-10.5,10)]
         a = WP("YZ").polyline(pts).close().extrude(60,both=True)
+        #rectangular through pockets
         a = a.cut(WP().pushPoints([(0,0),(-35,0),(35,0)]).rect(25,15).extrude(10,both=True))
         a = a.cut(WP().workplane(offset=10).rect(120,21).extrude(6,both=True))
+        #chamfer edges of rectangular through pockets
         for n in (1,2,3,4,5,6):
             a = a.faces(f">X[{n}]").edges("|Y").chamfer(4)
+        #bolt holes
         a = a.cut(WP("XZ").pushPoints([(6,0),(-6,0),(41,0),(29,0),(-41,0),(-29,0)]).circle(5.2/2).extrude(12,both=True))
         return a
     @staticmethod
     def upstand():
-        H,T,W = 100,15,40
-        y = H/2-T
+        H,T,W,offset = 100,15,40,10
+        y = H/2-offset
         a = WP().moveTo(0,y).rect(W,H).extrude(-T)
-        a = a.edges("|Z").fillet(9.5)
+        a = a.edges("|Z").fillet(5)
         a = a.union(WP().rect(20,6).extrude(2))
-        a = a.cut(WP().pushPoints([(-12,0),(12,0),(-12,H-T*2),(12,H-T*2)]).circle(5/2).extrude(T,both=True))
-        a = a.union(WP().moveTo(0,H-T*2-10-4).rect(W,8).extrude(8))
+        #mounting holes
+        a = a.cut(WP().pushPoints([(-12,0),(12,0),(-12,H-offset*2),(12,H-offset*2)]).circle(5/2).extrude(T,both=True))
+        #edge stop
+        a = a.union(WP().moveTo(0,H-offset*2-10-4).rect(W,8).extrude(8))
         a = a.faces("<Z").edges("|Y").fillet(2)
         return a
+    @staticmethod
+    def basePlate():
+        a = WP("XZ").rect(table[1],table[0]).extrude(15,both=True)
+        return(a)
     
-ASSY = True
-EXPORT = True
-
 strut = 20
 laserSquare = 33
 #table = 750,1090
 table = 200,300
 pitch = 40.5
 W = table[1]-strut
+
+ASSY = False
+EXPORT = False
+a = parts.laserMount()
+
 black = cq.Color(0,0,0,1)
 orange = cq.Color(1,0.5,0,0.5)
+yellow = cq.Color(1,0.9,0,1)
 red = cq.Color(1,0,0,0.5)
 green = cq.Color(0,1,0,0.5)
 blue = cq.Color(0,0,1,0.5)
@@ -194,8 +225,8 @@ if ASSY:
     
     assy.add(parts.yAxisEnd(pitch).rotate((0,0,0),(0,1,0),90).translate((x,0,0)), color=orange)
     assy.add(parts.yAxisEnd(pitch,mirror=True).rotate((0,0,0),(0,1,0),90).translate((-x,0,0)), color=orange)
-    assy.add(parts.motorMount(40.5).translate((0,0,-z+12)),color=orange)
-    assy.add(parts.laserMount(pitch).translate((0,0,-z+12)),color=orange)
+    assy.add(parts.ySlidePlate(40.5).translate((0,0,-z+12)),color=orange)
+    assy.add(parts.laserMount().translate((0,0,-z+12)),color=orange)
     #struts:
     assy.add(bought.alu2020(W-46,"X").translate((0,-pitch/2,-z)))
     assy.add(bought.alu2020(W-46,"X").translate((0,pitch/2,-z)))
@@ -211,6 +242,9 @@ if ASSY:
     assy.add(parts.upstand().rotate((0,0,0),(0,1,0),-90).translate((+W/2+10,0,z)),color=blue)
     assy.add(parts.upstand().rotate((0,0,0),(0,1,0),90).translate((-W/2-10,0,-z)),color=blue)
     assy.add(parts.upstand().rotate((0,0,0),(0,1,0),-90).translate((+W/2+10,0,-z)),color=blue)
+    assy.add(parts.basePlate().translate((0,85,0)),color=yellow)
+    assy.add(parts.clamp().translate((15,0,-15)),color=yellow)
+    assy.add(parts.clamp().translate((-15,0,-15)),color=yellow)
     show_object(assy)
 
 if EXPORT:
@@ -222,7 +256,7 @@ if EXPORT:
     cq.exporters.export(parts.stepperBracket().rotate((0,0,0),(1,0,0),-90),"stepperBracket-L.stl")
     cq.exporters.export(parts.stepperBracket(mirror="True").rotate((0,0,0),(1,0,0),-90),"stepperBracket-R.stl")
     cq.exporters.export(parts.idler().rotate((0,0,0),(1,0,0),90),"idler.stl")
-    cq.exporters.export(parts.motorMount(40.5),"carridge.stl")
-    cq.exporters.export(parts.laserMount(pitch).rotate((0,0,0),(1,0,0),90),"laserMount.stl")
+    cq.exporters.export(parts.ySlidePlate(40.5),"carridge.stl")
+    cq.exporters.export(parts.laserMount().rotate((0,0,0),(1,0,0),90),"laserMount.stl")
     cq.exporters.export(parts.upstand(),"upStand.stl")
-    
+    cq.exporters.export(parts.clamp().rotate((0,0,0),(1,0,0),180),"clamp.stl")
