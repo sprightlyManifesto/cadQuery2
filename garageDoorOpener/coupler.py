@@ -2,6 +2,7 @@ import cadquery as cq
 from cadquery import Workplane as WP
 
 C = 0.2 
+#DiaCoupler, DiaShaft, KeywayWidth, KeywayHeight
 Dc,Ds,Kw,Kh = 40,24+C,8+C,27+C
 p = ((Ds/2)**2 - (Kw/2)**2)**0.5
 Hc,Wc,Wp = 35,20,22
@@ -38,9 +39,6 @@ c = c.cut(WP("YZ").circle(D1/2).extrude(Dc))
 c = c.cut(WP().workplane(offset=-30).circle(Sd/2).extrude(-Dc))
 c = c.rotate((0,0,0),(0,0,1),90).rotate((0,0,0),(0,1,0),180)
 show_object(c)
-
-
-
 
 cq.exporters.export(a,"a.stl")
 cq.exporters.export(b,"b.stl")
