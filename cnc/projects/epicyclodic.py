@@ -1,20 +1,24 @@
 #spirograph
 from math import sin, cos , pi
 from math import atan2
+from cadquery import Workplane as WP
 
 feed = 2000
 #D1 diameter of outer circle
 D1 = 200
 #D2 dimmeter of the cirle rolling round the outer circle
-D2 = 150
+D2 = 80
 #radius of the point on the inner circle (where the pen goes on spirograph)
 r1 = 45
 #OD outer diameter of marked shape
 OD = D1-D2+r1*2
  
-def surfaceZ(r):
-    mag = 20
-    pz = mag/2 * sin(10*r/OD*pi) *(1-r/OD) -mag
+def surfaceZ(x,y):
+    D = 1.1*OD
+    r = (x**2+y**2)**0.5
+    mag = 5
+    pz = mag * -cos(17*r/D*pi)
+    #*(1-r/D) -mag
     return pz
 
 pts = []
@@ -47,21 +51,23 @@ for t in range(360*N +1):
     cx,cy = (D1-D2)/2*sin(R1),(D1-D2)/2*cos(R1)    
     R2 = -t*(D1/D2)/180*pi
     px,py = cx + r1*sin(R2), cy + r1*cos(R2)
-    r = (px**2 + py**2)**0.5
-    pz = surfaceZ(r)
-    rndpts.append((round(px,3),round(py,3),round(pz,3)))
+    pz = surfaceZ(px,py)
+    rndpts.append((round(px,3),round(py,3)))#,round(pz,3)))
 rndpts = rndpts[0::2]
 
 #calculate surface machining
-surfpts  = [] 
+surfpts  = []
+surfSection = [] 
 passes = 100
 increment = 1.1*OD/2/passes
 for p in range(passes):
+    px, py = increment*p , surfaceZ(0,p*increment)
+    surfSection.append((px,py)) 
     for t in range(360):
         R = t/180*pi
         r = increment*p + t/360*increment
         px,py = r*sin(R), r*cos(R)
-        pz = surfaceZ(r)
+        pz = surfaceZ(px,py)
         surfpts.append((round(px,3),round(py,3),round(pz,3)))
 surfpts = surfpts[0::2]
 
@@ -74,13 +80,19 @@ for p in surfpts:
 gcode += "G0 Z5\n"
 gcode += f"G0 X{rndpts[0][0]} Y{rndpts[0][1]}\n"
 for p in rndpts:    
-    gcode += f"G1 X{p[0]} Y{p[1]} Z{p[2]}\n"
+    gcode += f"G1 X{p[0]} Y{p[1]}\n" #Z{p[2]}\n"
 gcode += "G0 z100\n"
 distance = 0
-pts = pts[0::40]
-
-
 #gcode = f";very crap estimates: Distance(mm): {distance} Time(minutes): {round(distance/feed,2)}\n {gcode}"
 
 open(f"Epicyclodic--D1_{D1}_D2_{D2}_r1_{r1}.nc","w").write(gcode)
 open(f"latest.nc","w").write(gcode)
+
+t = 50
+y = surfSection[-1][1]
+surfSection.append((OD*0.6,y))
+surfSection.append((OD*0.6,-t))
+surfSection.append((0,-t))
+#a = WP().polyline(surfpts[::360]).close()
+a = WP().polyline(rndpts).close()
+#b = WP("YZ").polyline(surfSection).close().revolve(360,(0,0,0),(0,1,0))
