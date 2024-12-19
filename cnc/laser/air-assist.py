@@ -12,8 +12,8 @@ a = a.faces("<Y").edges("|Z").fillet(2)
 a = a.faces(">X").edges("|Z").fillet(2)
 a = a.edges("|Z").fillet(3)
 a = a.cut(WP().circle(4/2).extrude(H))
-a = a.cut(WP().rect(24,24,forConstruction=True).vertices().circle(2.7/2).extrude(H))
-a = a.cut(WP().rect(24,24,forConstruction=True).vertices().circle(4.5/2).extrude(H).translate((0,0,H-2)))
+a = a.cut(WP().rect(24,24,forConstruction=True).vertices().circle(3.18/2).extrude(H))
+a = a.cut(WP().rect(24,24,forConstruction=True).vertices().circle(5/2).extrude(H).translate((0,0,H-2)))
 a = a.cut(WP().circle(21/2).extrude(proud))
 a = a.cut(WP().circle(9/2).circle(16/2).extrude(proud+1.75))
 
@@ -22,8 +22,8 @@ R =26/2
 xy = (R**2/2)**0.5
 x2,y2 = sin(pi/12)*R,cos(pi/12)*R
 a = a.cut(WP().rect(24,24,forConstruction=True).vertices().circle(2.7/2).extrude(H))
-a = a.cut(WP().moveTo(-xy,xy).radiusArc((-x2,y2),R).offset2D(2).mirrorX().mirrorY().extrude(H))
-a = a.edges("|Z").fillet(1)
+a = a.cut(WP().moveTo(-xy,xy).radiusArc((-x2,y2),R).offset2D(3.4/2).mirrorX().mirrorY().extrude(H))
+#a = a.edges("|Z").fillet(1)
 
 
 #Compressed airpath

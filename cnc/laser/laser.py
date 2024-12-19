@@ -3,6 +3,7 @@ from cadquery.selectors import RadiusNthSelector as NthR
 from math import cos, sin, tan, pi
 import cadquery as cq
 
+
 class bought(object):
     @staticmethod
     def alu2020(L,axis="Z"):
@@ -60,7 +61,7 @@ class parts(object):
         return a
     @staticmethod
     def clamp():
-        T = 6
+        T = 3
         a = WP().moveTo(0,15).lineTo(0,-15).close().offset2D(6).extrude(T)
         beltPitch = 2
         pts = [(-0.7,0),(-0.3,0.8),(0.3,0.8),(0.7,0)]
@@ -69,7 +70,6 @@ class parts(object):
             a = a.cut(beltProfile.translate((beltPitch*i,0,0)))
         #claming holes
         a = a.cut(WP().pushPoints([(0,15),(0,-15)]).circle(3.3/2).extrude(T))
-        a = a.cut(WP().workplane(offset=T).pushPoints([(0,15),(0,-15)]).circle(6.5/2).extrude(-T/2))
         return a
     
     @staticmethod
@@ -99,15 +99,14 @@ class parts(object):
         wall, LS, rearWall,H,T = 3, 33.2,10,30,10
         L = LS+wall+rearWall
         a = WP("XZ").moveTo(0,L/2).rect(LS+wall*2,L).extrude(H/2,both=True)
-    
         #laser cut out
         a = a.cut(WP("XZ").moveTo(0,LS/2 + rearWall).rect(LS,LS).extrude(H/2,both=True))
         #pinch
-        a = a.cut(WP("XZ").moveTo(0,rearWall+LS).rect(12,LS).extrude(H/2,both=True))
+        a = a.cut(WP("XZ").moveTo(0,rearWall+LS).rect(wall,LS).extrude(H/2,both=True))
         t,w = 5, 10
-        x,y = 8.5, L+w/2
+        x,y = t/2+wall/2, L+w/2
         a = a.union(WP("XZ").workplane(offset=-H/2).pushPoints([(x,y),(-x,y)]).rect(5,10).extrude(H))
-        a = a.cut(WP("YZ").center(H/2-15,y).pushPoints([(8,0),(-8,0)]).circle(3.3/2).extrude(LS,both=True))
+        a = a.cut(WP("YZ").center(H/2-15,y).pushPoints([(8,0),(-8,0)]).circle(3.3/2).extrude(10,both=True))
         #mounting holes
         a = a.cut(WP().rect(20,20,forConstruction=True).vertices().circle(3.3/2).extrude(T))
         a = a.cut(WP().workplane(offset=rearWall).moveTo(0,H/2-15).rect(20,20,forConstruction=True).vertices().polygon(6,5.5/cos(pi/6)).extrude(-4))
@@ -194,7 +193,7 @@ pitch = 40.5
 W = table[1]-strut
 
 ASSY = True
-EXPORT = True
+EXPORT = False
 
 black = cq.Color(0,0,0,1)
 orange = cq.Color(1,0.5,0,0.5)

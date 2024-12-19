@@ -3,6 +3,7 @@
 
 from math import sin, cos, tan, asin, acos, atan, pi
 import cadquery as cq
+from cadquery import Workplane as WP
 #result = cq.Workplane("XY" ).box(3, 3, 0.5).edges("|Z").fillet(0.125)
 class timingPulley:
     @staticmethod
@@ -58,6 +59,27 @@ class timingPulley:
                 
         return g
 
-g = timingPulley.pulley("GT2_2mm",20,7,5.1)
+H = 35
+bore = 28
+PCD = 37
+teeth = 32
+h1 = 9
+h2 = 10
+h3 = H-1
+taper = 3
 
-cq.exporters.export(g,"GT2_2mmx7.step")
+g = timingPulley.pulley("T5",32,H,bore)
+g = g.cut(WP().circle(46/2).circle(100).extrude(9))
+
+
+g = g.union(WP().workplane(offset=h1).circle(54/2).extrude(3).faces(">Z").edges().chamfer(2.7))
+g = g.union(WP().workplane(offset=H).circle(54/2).extrude(-3).faces("<Z").edges().chamfer(2.7))
+
+g = g.cut(WP().circle(bore/2).extrude(H))
+g = g.cut(WP().moveTo(bore/2,0).rect(4,4).extrude(H))
+"""
+pts = [(PCD/2*sin(n/N*2*pi),PCD/2*cos(n/N*2*pi)) for n in range(N)]
+g = g.cut(WP().pushPoints(pts).circle(3.3/2).extrude(H))
+"""
+cq.exporters.export(g.rotate((0,0,0),(0,1,0),180),f"T5_{teeth}-{bore}bore-{H}H.stl")
+
